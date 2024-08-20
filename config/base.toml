@@ -6,4 +6,4 @@ host = "127.0.0.1"
 port = 5432
 username = "postgres"
 password = "password"
-database_name = "axum-template"
+database_name = "{{project-name}}"

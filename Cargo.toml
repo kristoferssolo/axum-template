@@ -1,5 +1,5 @@
 [package]
-name = "axum-template"
+name = "{{project-name}}"
 version = "0.1.0"
 edition = "2021"
 authors = ["Kristofers Solo <dev@kristofers.xyz>"]
@@ -9,7 +9,7 @@ path = "src/lib.rs"
 
 [[bin]]
 path = "src/main.rs"
-name = "axum-template"
+name = "{{project-name}}"
 
 [dependencies]
 axum = "0.7"

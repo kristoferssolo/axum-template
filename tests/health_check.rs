@@ -1,4 +1,4 @@
-use axum_template::{
+use {{crate_name}}::{
     config::{get_config, DatabaseSettings},
     routes::route,
     telemetry::{get_subscriber, init_subscriber},

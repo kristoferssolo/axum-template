@@ -1,4 +1,4 @@
-use axum_template::{
+use {{crate_name}}::{
     config::get_config,
     routes::route,
     telemetry::{get_subscriber, init_subscriber},
@@ -8,7 +8,7 @@ use tokio::net::TcpListener;
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
-    let subscriber = get_subscriber("axum-template", "info", std::io::stdout);
+    let subscriber = get_subscriber("{{project-name}}", "info", std::io::stdout);
     init_subscriber(subscriber);
     let config = get_config().expect("Failed to read configuation.");
     let pool = PgPoolOptions::new().connect_lazy_with(config.database.with_db());
