@@ -28,4 +28,4 @@ RUN apt-get update -y \
 COPY --from=builder /app/target/release/{{project-name}} {{project-name}}
 COPY config config
 ENV APP_ENVIRONMENT production
-ENTRYPOINT ["./axum-template"]
+ENTRYPOINT ["./{{project-name}}"]
