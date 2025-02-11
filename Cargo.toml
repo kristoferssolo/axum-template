@@ -43,6 +43,7 @@ reqwest = { version = "0.12", default-features = false, features = [
   "json",
   "rustls-tls",
 ] }
+askama = { version = "0.12", features = ["with-axum"] }
 
 
 [dev-dependencies]
