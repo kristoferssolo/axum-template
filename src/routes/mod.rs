@@ -61,5 +61,4 @@ pub fn route(state: AppState) -> Router {
                     |_error: ServerErrorsFailureClass, _latency: Duration, _span: &Span| {},
                 ),
         )
-    // .layer(create_telemetry_layer())
 }
