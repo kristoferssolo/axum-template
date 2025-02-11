@@ -1,21 +1,15 @@
 use {{crate_name}}::{
     config::get_config,
-    routes::route,
-    telemetry::{get_subscriber, init_subscriber},
+    middleware::telemetry::{get_subscriber, init_subscriber},
+    startup::Application,
 };
-use sqlx::postgres::PgPoolOptions;
-use tokio::net::TcpListener;
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
-    let subscriber = get_subscriber("{{project-name}}", "info", std::io::stdout);
+    let subscriber = get_subscriber("{{crate_name}}", "info", std::io::stdout);
     init_subscriber(subscriber);
     let config = get_config().expect("Failed to read configuation.");
-    let pool = PgPoolOptions::new().connect_lazy_with(config.database.with_db());
-    let addr = format!("{}:{}", config.application.host, config.application.port);
-    let listener = TcpListener::bind(addr)
-        .await
-        .expect("Failed to bind port 8000.");
-
-    axum::serve(listener, route(pool)).await
+    let application = Application::build(config).await?;
+    application.run_until_stopped().await?;
+    Ok(())
 }

@@ -1,28 +1,11 @@
 use {{crate_name}}::{
     config::{get_config, DatabaseSettings},
-    routes::route,
-    telemetry::{get_subscriber, init_subscriber},
+    middleware::telemetry::{get_subscriber, init_subscriber},
+    startup::{get_connection_pool, Application},
 };
 use once_cell::sync::Lazy;
-use reqwest::Client;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
-use tokio::net::TcpListener;
 use uuid::Uuid;
-
-#[tokio::test]
-async fn health_check() {
-    let app = spawn_app().await;
-    let url = format!("{}/health_check", &app.address);
-    let client = Client::new();
-    let response = client
-        .get(&url)
-        .send()
-        .await
-        .expect("Failed to execute request");
-
-    assert!(response.status().is_success());
-    assert_eq!(Some(0), response.content_length());
-}
 
 static TRACING: Lazy<()> = Lazy::new(|| {
     let default_filter_level = "trace";
@@ -36,27 +19,33 @@ static TRACING: Lazy<()> = Lazy::new(|| {
     }
 });
 
-async fn spawn_app() -> TestApp {
+pub struct TestApp {
+    pub address: String,
+    pub pool: PgPool,
+}
+
+pub async fn spawn_app() -> TestApp {
     Lazy::force(&TRACING);
-    let listener = TcpListener::bind("127.0.0.1:0")
+
+    let config = {
+        let mut c = get_config().expect("Failed to read configuration.");
+        c.database.database_name = Uuid::new_v4().to_string();
+        c.application.port = 0;
+        c
+    };
+    configure_database(&config.database).await;
+
+    let application = Application::build(config.clone())
         .await
-        .expect("Failed to bind random port");
-    let port = listener.local_addr().unwrap().port();
-    let address = format!("http://127.0.0.1:{}", port);
+        .expect("Failed to build application.");
 
-    let mut config = get_config().expect("Failed to read configuration.");
+    let address = format!("http://127.0.0.1:{}", application.port());
+    let _ = tokio::spawn(application.run_until_stopped());
 
-    config.database.database_name = Uuid::new_v4().to_string();
-
-    let pool = configure_database(&config.database).await;
-    let pool_clone = pool.clone();
-
-    let _ = tokio::spawn(async move {
-        axum::serve(listener, route(pool_clone))
-            .await
-            .expect("Failed to bind address.")
-    });
-    TestApp { address, pool }
+    TestApp {
+        address,
+        pool: get_connection_pool(&config.database),
+    }
 }
 
 async fn configure_database(config: &DatabaseSettings) -> PgPool {
@@ -87,9 +76,4 @@ async fn configure_database(config: &DatabaseSettings) -> PgPool {
         .expect("Failed to migrate database");
 
     pool
-}
-
-pub struct TestApp {
-    pub address: String,
-    pub pool: PgPool,
 }

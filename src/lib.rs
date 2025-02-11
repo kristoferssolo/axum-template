@@ -1,4 +1,9 @@
 pub mod config;
 pub mod domain;
+pub mod errors;
+pub mod middleware;
+pub mod models;
+pub mod repositories;
 pub mod routes;
-pub mod telemetry;
+pub mod services;
+pub mod startup;
